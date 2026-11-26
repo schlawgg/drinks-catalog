@@ -354,3 +354,102 @@ img {
     font-size: 0.8rem;
     font-weight: bold;
 }
+
+/* ===== Практикум 8: форма додавання рецепта, чекбокси, валідація ===== */
+
+.form-group--checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-checkbox {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin: 0;
+    accent-color: #e65100;
+    cursor: pointer;
+}
+
+.form-checkbox_label {
+    font-weight: 600;
+    color: #5d4037;
+    cursor: pointer;
+}
+
+.add-form {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border: 1px solid #f0e0d6;
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(183, 28, 28, 0.05);
+}
+
+/* червона рамка для поля, яке користувач заповнив некоректно */
+.form-group_input:user-invalid {
+    border-color: #c62828;
+}
+
+.form-error {
+    min-height: 1.2rem;
+    margin: 0.3rem 0 0 0;
+    font-size: 0.85rem;
+    color: #c62828;
+}
+
+.form-success {
+    margin: 1rem 0 0 0;
+    font-weight: 600;
+    color: #2e7d32;
+}
+
+.form-success:empty {
+    display: none;
+}
+
+/* заглушка замість фото для рецептів, доданих через форму */
+.recipe-card_image--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    background: linear-gradient(135deg, #ffe0b2, #ffccbc);
+}
+
+.recipes-empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 2rem;
+    text-align: center;
+    color: #5d4037;
+    background-color: #ffffff;
+    border: 1px dashed #d7ccc8;
+    border-radius: 12px;
+}
+
+@media (min-width: 600px) {
+    .filter-form .form-group--checkbox,
+    .filter-form .form-group--button {
+        flex: 0 0 auto;
+    }
+
+    .filter-form .form-group--checkbox {
+        min-height: 2.9rem;
+    }
+
+    .add-form {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+
+    .add-form .form-group--checkbox {
+        margin-top: 2.4rem;
+    }
+
+    .add-form .form-group--button {
+        grid-column: 1 / -1;
+    }
+}
