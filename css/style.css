@@ -1,0 +1,356 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #3e2723;
+    background-color: #fff8f0;
+}
+
+h1, h2, h3 {
+    font-family: 'Georgia', serif;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.header {
+    background-color: #b71c1c;
+    padding: 1.5rem 1rem;
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.header_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header_title {
+    margin: 0;
+    font-size: 2.2rem;
+    text-align: center;
+}
+
+.header_nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.nav_link {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding-bottom: 3px;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+.nav_link:hover {
+    border-color: #ffb74d;
+}
+
+.page-layout {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2.5rem 1rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+}
+
+.section {
+    margin-bottom: 2.5rem;
+}
+
+.section_title {
+    font-size: 1.8rem;
+    color: #b71c1c;
+    border-left: 5px solid #e65100;
+    padding-left: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.filter-form {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border: 1px solid #f0e0d6;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(183, 28, 28, 0.05);
+}
+
+.form-group_label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #5d4037;
+}
+
+.form-group_input {
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    font-size: 1rem;
+    border: 1px solid #d7ccc8;
+    border-radius: 8px;
+    font-family: inherit;
+}
+
+.form-group_input:focus {
+    outline: none;
+    border-color: #e65100;
+    box-shadow: 0 0 0 2px rgba(230, 81, 0, 0.2);
+}
+
+.btn {
+    background-color: #e65100;
+    color: #ffffff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.05rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+    background-color: #bf360c;
+    transform: translateY(-1px);
+}
+
+.recipes-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.8rem;
+}
+
+.recipe-card {
+    background-color: #ffffff;
+    border: 1px solid #f0e0d6;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.recipe-card:hover {
+    box-shadow: 0 10px 20px rgba(93, 64, 55, 0.1);
+    transform: translateY(-4px);
+}
+
+.recipe-card_image {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.recipe-card_content {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+.recipe-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.recipe-badge--hot {
+    background-color: #d32f2f;
+}
+
+.recipe-badge--cold {
+    background-color: #0288d1;
+}
+
+.recipe-card_title {
+    margin: 0 0 0.8rem 0;
+    font-size: 1.5rem;
+    color: #b71c1c;
+}
+
+.recipe-card_info {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #5d4037;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.recipe-card_link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: #e65100;
+    text-decoration: none;
+    font-weight: bold;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+.recipe-card_link:hover {
+    border-color: #e65100;
+}
+
+.details-card {
+    background-color: #ffffff;
+    border: 2px solid #e65100;
+    border-radius: 12px;
+    padding: 2rem;
+    align-self: start;
+    box-shadow: 0 6px 16px rgba(230, 81, 0, 0.08);
+}
+
+.details-card_title {
+    margin: 0 0 1rem 0;
+    font-size: 1.6rem;
+    color: #b71c1c;
+}
+
+.details-card_subtitle {
+    margin: 0 0 1.2rem 0;
+    color: #e65100;
+    font-size: 1.3rem;
+}
+
+.details-card_text {
+    margin-bottom: 0.5rem;
+    color: #5d4037;
+}
+
+.details-card_steps,
+.details-card_list {
+    padding-left: 1.5rem;
+    margin-bottom: 1.8rem;
+    color: #3e2723;
+}
+
+.details-card_steps li,
+.details-card_list li {
+    margin-bottom: 0.5rem;
+}
+
+.footer {
+    background-color: #3e2723;
+    color: #ffffff;
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: 0.95rem;
+}
+
+.footer p {
+    margin: 0;
+    opacity: 0.8;
+}
+
+@media (min-width: 600px) {
+    .page-layout {
+        max-width: 800px;
+    }
+
+    .header_container {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .filter-form {
+        flex-direction: row;
+        align-items: flex-end;
+    }
+
+    .form-group {
+        flex: 1;
+    }
+
+    .btn {
+        width: auto;
+    }
+
+    .recipes-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .page-layout {
+        max-width: 1200px;
+        grid-template-columns: 3fr 1fr;
+        align-items: start;
+    }
+
+    .recipes-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .details-card {
+        position: sticky;
+        top: 2rem;
+    }
+}
+
+/* ===== Практикум 7: стилі для карток, створених через JavaScript ===== */
+
+.recipes-summary {
+    margin: -0.5rem 0 1.5rem 0;
+    font-weight: 600;
+    color: #5d4037;
+}
+
+.recipe-card {
+    position: relative;
+}
+
+/* бейдж типу напою тепер p, тому прибираємо стандартний верхній відступ */
+.recipe-badge {
+    margin: 0 0 0.8rem 0;
+}
+
+.recipe-badge--cocktail {
+    background-color: #7b1fa2;
+}
+
+/* клас non-alcoholic додається з script.js, якщо alcohol === false */
+.recipe-card.non-alcoholic {
+    border-color: #2e7d32;
+}
+
+.recipe-card.non-alcoholic::after {
+    content: 'Без алкоголю';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background-color: #2e7d32;
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: bold;
+}

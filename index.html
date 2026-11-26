@@ -5,18 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Каталог рецептів напоїв</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="js/script.js" defer></script>
 </head>
 <body>
-    <!-- Шапка з навігацією та пошуком -->
-    
-    <!-- Блок фільтра за типом напою -->
-    
-    <!-- Список карток рецептів -->
-    
-    <!-- Блок деталей обраного рецепта (інгредієнти, кроки) -->
-    
-    <!-- Підвал -->
-    
-    <script src="js/app.js"></script>
+    <header class="header">
+        <div class="header_container">
+            <h1 class="header_title">Каталог рецептів напоїв</h1>
+            <nav class="header_nav">
+                <a href="#recipes" class="nav_link">Гарячі напої</a>
+                <a href="#recipes" class="nav_link">Холодні напої</a>
+                <a href="#recipes" class="nav_link">Коктейлі</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="page-layout">
+        <main class="main-content">
+            <section id="filter" class="section">
+                <h2 class="section_title">Фільтр</h2>
+                <form action="#" class="filter-form">
+                    <div class="form-group">
+                        <label for="drink-category" class="form-group_label">Тип напою: </label>
+                        <select id="drink-category" name="category" class="form-group_input">
+                            <option value="all">Усі напої</option>
+                            <option value="hot">Гарячі</option>
+                            <option value="cold">Холодні</option>
+                            <option value="cocktail">Коктейлі</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="search-input" class="form-group_label">Пошук за назвою: </label>
+                        <input type="text" id="search-input" name="search" class="form-group_input">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn">Застосувати</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="recipes" class="section">
+                <h2 class="section_title">Рецепти</h2>
+                <!-- Підсумок: оновлюється з script.js -->
+                <p id="drinks-count" class="recipes-summary">Завантаження рецептів...</p>
+
+                <!-- Контейнер, у який script.js виводить картки рецептів -->
+                <div id="drinks-list" class="recipes-grid">
+                    <!-- Статичний приклад картки з практикуму 2 (орієнтир структури).
+                         Видаляється програмно на початку script.js -->
+                    <article class="recipe-card recipe-card--static">
+                        <img src="assets/img/cappuccino.jpg" alt="Чашка гарячого капучино" class="recipe-card_image">
+                        <div class="recipe-card_content">
+                            <p class="recipe-badge recipe-badge--hot">Гарячий напій</p>
+                            <h3 class="recipe-card_title">Капучино</h3>
+                            <p class="recipe-card_info">⏳ Час: <strong>10 хв</strong></p>
+                            <p class="recipe-card_info">📊 Складність: <span>Середня</span></p>
+                            <p><a href="#recipe-details" class="recipe-card_link">Детальніше</a></p>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+
+        <aside id="recipe-details" class="details-card">
+            <h2 class="details-card_title">Деталі обраного рецепта</h2>
+            <h3 class="details-card_subtitle">Мохіто безалкогольний</h3>
+            <p class="details-card_text"><strong>Інгредієнти:</strong></p>
+            <ul class="details-card_list">
+                <li>М'ята - 10 листочків</li>
+                <li>Лайм - 1/2 шт.</li>
+                <li>Газована вода - 150 мл</li>
+                <li>Лід - за смаком</li>
+                <li>Цукор - 1 ч.л.</li>
+            </ul>
+            <p class="details-card_text"><strong>Кроки приготування:</strong></p>
+            <ol class="details-card_steps">
+                <li>Нарізати лайм часточками.</li>
+                <li>Розім'яти лайм з м'ятою та цукром на дні.</li>
+                <li>Додати лід.</li>
+                <li>Залити водою та перемішати.</li>
+            </ol>
+        </aside>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 Борис Малиновський</p>
+    </footer>
 </body>
 </html>
