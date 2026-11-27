@@ -553,3 +553,44 @@ img {
 [v-cloak] {
     display: none;
 }
+
+/* ===== Практикум 11: збережені рецепти ===== */
+
+.btn--small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.btn--danger {
+    background-color: #c62828;
+}
+
+.btn--danger:hover {
+    background-color: #8e0000;
+}
+
+.recipe-card_actions {
+    margin: 1rem 0 0 0;
+}
+
+.recipe-badge--saved {
+    background-color: #5d4037;
+}
+
+.recipe-card_label {
+    margin: 0 0 0.3rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #5d4037;
+}
+
+.saved-ingredients {
+    margin: 0;
+    padding-left: 1.2rem;
+    font-size: 0.9rem;
+    color: #3e2723;
+}
+
+.saved-ingredients li {
+    margin-bottom: 0.2rem;
+}

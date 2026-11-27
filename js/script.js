@@ -9,6 +9,21 @@ console.log('script.js підключено');
 // Адреса пошуку коктейлів у TheCocktailDB (тестовий ключ «1», реєстрація не потрібна)
 const API_URL = 'https://www.thecocktaildb.com/api/json/v1/1/search.php';
 
+// ===== Практикум 11: налаштування локальних сховищ =====
+
+// Джерело даних для збережених рецептів:
+// false - етап 1 (localStorage), true - етап 2 (IndexedDB з одноразовою міграцією з localStorage)
+const USE_INDEXEDDB = true;
+
+// Ключі localStorage
+const STORAGE_KEY = 'savedCocktails';
+const MIGRATION_FLAG = 'savedCocktailsMigrated';
+
+// Схема IndexedDB: база, версія, об'єктне сховище і його ключ (keyPath)
+const DB_NAME = 'DrinksCatalogDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'cocktails';
+
 // Назви типів напоїв для значень select форми додавання
 const typeLabels = {
     hot: 'Гарячий напій',
@@ -322,7 +337,18 @@ function createApiCard(drink) {
     instructions.classList.add('recipe-card_instructions');
     instructions.textContent = drink.strInstructions;
 
-    content.append(type, title, instructions);
+    // Кнопка «Зберегти рецепт» (практикум 11): запис рецепта в локальне сховище
+    const actions = document.createElement('p');
+    actions.classList.add('recipe-card_actions');
+    const saveButton = document.createElement('button');
+    saveButton.type = 'button';
+    saveButton.classList.add('btn', 'btn--small', 'save-btn');
+    saveButton.dataset.id = drink.idDrink;
+    setSaveButtonLabel(saveButton);
+    saveButton.addEventListener('click', () => saveCocktail(drink));
+    actions.append(saveButton);
+
+    content.append(type, title, instructions, actions);
     card.append(image, content);
     return card;
 }
@@ -417,4 +443,334 @@ apiReloadButton.addEventListener('click', () => {
     loadCocktails(lastQuery);
 });
 
+// ===== Практикум 11: збережені рецепти (localStorage → IndexedDB) =====
+
+const savedStatus = document.querySelector('#saved-status');
+const savedError = document.querySelector('#saved-error');
+const savedList = document.querySelector('#saved-list');
+
+// id збережених рецептів - щоб кнопка на картці API знала, що рецепт уже збережено
+let savedIds = new Set();
+
+// ----- Модель даних -----
+
+// Збирає список інгредієнтів з полів strIngredient1..15 і strMeasure1..15
+function getIngredients(drink) {
+    const ingredients = [];
+    for (let i = 1; i <= 15; i++) {
+        const ingredient = drink[`strIngredient${i}`];
+        if (!ingredient) continue;
+        const measure = drink[`strMeasure${i}`];
+        ingredients.push(measure ? `${measure.trim()} ${ingredient}` : ingredient);
+    }
+    return ingredients;
+}
+
+// Перетворює коктейль з API на запис для сховища: id, name, ingredients, instructions
+function toSavedRecipe(drink) {
+    return {
+        id: drink.idDrink,
+        name: drink.strDrink,
+        ingredients: getIngredients(drink),
+        instructions: drink.strInstructions,
+        image: drink.strDrinkThumb,
+        savedAt: new Date().toISOString()
+    };
+}
+
+// ----- localStorage (етап 1) -----
+
+// Зберігає масив рецептів у localStorage як JSON-рядок
+function saveToLocalStorage(items) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+}
+
+// Читає масив рецептів з localStorage; пошкоджені дані не «ламають» застосунок
+function loadFromLocalStorage() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const items = raw ? JSON.parse(raw) : [];
+        return Array.isArray(items) ? items : [];
+    } catch (error) {
+        console.error('Пошкоджені дані в localStorage:', error);
+        return [];
+    }
+}
+
+// ----- IndexedDB (етап 2) -----
+
+let dbPromise = null;
+
+// Відкриває базу DrinksCatalogDB; сховище cocktails створюється лише в onupgradeneeded
+function openDB() {
+    if (dbPromise) {
+        return dbPromise;
+    }
+
+    dbPromise = new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) {
+            reject(new Error('IndexedDB не підтримується цим браузером'));
+            return;
+        }
+
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = event => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+            }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+
+    // якщо відкрити базу не вдалося, наступний виклик спробує ще раз
+    dbPromise.catch(() => {
+        dbPromise = null;
+    });
+
+    return dbPromise;
+}
+
+// Записує рецепт у сховище: put створює новий запис або оновлює наявний з тим самим id
+async function putItem(item) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(item);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+// Create: додає новий рецепт
+async function addItem(item) {
+    return putItem(item);
+}
+
+// Update: оновлює вже збережений рецепт (той самий id - без дубліката)
+async function updateItem(item) {
+    return putItem(item);
+}
+
+// Read: повертає всі збережені рецепти
+async function getAllItems() {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const request = tx.objectStore(STORE_NAME).getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// Delete: видаляє рецепт за id
+async function deleteItem(id) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+// Одноразова міграція: якщо сховище порожнє, а в localStorage є рецепти - переносимо їх
+async function migrateFromLocalStorage() {
+    if (localStorage.getItem(MIGRATION_FLAG) === 'true') {
+        return;
+    }
+
+    const oldItems = loadFromLocalStorage();
+    if (oldItems.length === 0) {
+        return;
+    }
+
+    const currentItems = await getAllItems();
+    if (currentItems.length === 0) {
+        for (const item of oldItems) {
+            await addItem(item);
+        }
+        console.log(`Міграція: перенесено ${oldItems.length} рецепт(ів) з localStorage в IndexedDB`);
+    }
+
+    localStorage.setItem(MIGRATION_FLAG, 'true');
+}
+
+// ----- Спільні функції для обох сховищ -----
+
+async function getSavedRecipes() {
+    return USE_INDEXEDDB ? getAllItems() : loadFromLocalStorage();
+}
+
+async function storeRecipe(recipe, isUpdate) {
+    if (USE_INDEXEDDB) {
+        return isUpdate ? updateItem(recipe) : addItem(recipe);
+    }
+
+    const items = loadFromLocalStorage().filter(item => item.id !== recipe.id);
+    items.push(recipe);
+    saveToLocalStorage(items);
+}
+
+async function removeRecipe(id) {
+    if (USE_INDEXEDDB) {
+        return deleteItem(id);
+    }
+
+    saveToLocalStorage(loadFromLocalStorage().filter(item => item.id !== id));
+}
+
+// ----- Інтерфейс -----
+
+function showSavedError(message) {
+    savedError.textContent = message;
+    savedError.hidden = message === '';
+}
+
+// Текст кнопки на картці API залежить від того, чи рецепт уже збережено
+function setSaveButtonLabel(button) {
+    button.textContent = savedIds.has(button.dataset.id) ? '🔄 Оновити збережений' : '💾 Зберегти рецепт';
+}
+
+function updateSaveButtons() {
+    for (const button of apiList.querySelectorAll('.save-btn')) {
+        setSaveButtonLabel(button);
+    }
+}
+
+// Створює картку збереженого рецепта
+function createSavedCard(recipe) {
+    const card = document.createElement('article');
+    card.classList.add('recipe-card', 'saved-card');
+
+    const image = document.createElement('img');
+    image.classList.add('recipe-card_image');
+    image.src = recipe.image;
+    image.alt = `Коктейль ${recipe.name}`;
+    // без інтернету фото не завантажиться - показуємо заглушку замість «битої» картинки
+    image.addEventListener('error', () => {
+        const placeholder = document.createElement('div');
+        placeholder.classList.add('recipe-card_image', 'recipe-card_image--placeholder');
+        placeholder.setAttribute('role', 'img');
+        placeholder.setAttribute('aria-label', `Немає фото: ${recipe.name}`);
+        placeholder.textContent = '🍹';
+        image.replaceWith(placeholder);
+    });
+
+    const content = document.createElement('div');
+    content.classList.add('recipe-card_content');
+
+    const badge = document.createElement('p');
+    badge.classList.add('recipe-badge', 'recipe-badge--saved');
+    badge.textContent = 'Збережено';
+
+    const title = document.createElement('h3');
+    title.classList.add('recipe-card_title');
+    title.textContent = recipe.name;
+
+    const ingredientsTitle = document.createElement('p');
+    ingredientsTitle.classList.add('recipe-card_label');
+    ingredientsTitle.textContent = 'Інгредієнти:';
+
+    const ingredientsList = document.createElement('ul');
+    ingredientsList.classList.add('saved-ingredients');
+    for (const ingredient of recipe.ingredients) {
+        const item = document.createElement('li');
+        item.textContent = ingredient;
+        ingredientsList.append(item);
+    }
+
+    const instructions = document.createElement('p');
+    instructions.classList.add('recipe-card_instructions');
+    instructions.textContent = recipe.instructions;
+
+    const actions = document.createElement('p');
+    actions.classList.add('recipe-card_actions');
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.classList.add('btn', 'btn--small', 'btn--danger');
+    deleteButton.textContent = '🗑 Видалити';
+    deleteButton.addEventListener('click', () => deleteCocktail(recipe));
+    actions.append(deleteButton);
+
+    content.append(badge, title, ingredientsTitle, ingredientsList, instructions, actions);
+    card.append(image, content);
+    return card;
+}
+
+function renderSavedRecipes(items) {
+    savedList.innerHTML = '';
+    const storageName = USE_INDEXEDDB ? 'IndexedDB' : 'localStorage';
+    savedStatus.textContent = `Збережено рецептів: ${items.length} (сховище: ${storageName})`;
+
+    if (items.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.classList.add('recipes-empty');
+        emptyMessage.textContent = 'Ви ще не зберегли жодного рецепта. Натисніть «Зберегти рецепт» на картці з пошуку.';
+        savedList.append(emptyMessage);
+        return;
+    }
+
+    for (const recipe of items) {
+        savedList.append(createSavedCard(recipe));
+    }
+}
+
+// Перечитує рецепти зі сховища і перемальовує список (після кожної CRUD-операції)
+async function refreshSaved() {
+    const items = await getSavedRecipes();
+    items.sort((a, b) => b.savedAt.localeCompare(a.savedAt));   // нові - першими
+    savedIds = new Set(items.map(item => item.id));
+    renderSavedRecipes(items);
+    updateSaveButtons();
+}
+
+// Зберігає (або оновлює) рецепт з картки API
+async function saveCocktail(drink) {
+    const recipe = toSavedRecipe(drink);
+    const isUpdate = savedIds.has(recipe.id);
+
+    try {
+        await storeRecipe(recipe, isUpdate);
+        console.log(`${isUpdate ? 'Оновлено' : 'Збережено'} рецепт «${recipe.name}»:`, recipe);
+        showSavedError('');
+        await refreshSaved();
+    } catch (error) {
+        showSavedError('Не вдалося зберегти рецепт. Спробуйте ще раз.');
+        console.error('Помилка збереження рецепта:', error);
+    }
+}
+
+// Видаляє рецепт зі сховища
+async function deleteCocktail(recipe) {
+    try {
+        await removeRecipe(recipe.id);
+        console.log(`Видалено рецепт «${recipe.name}»`);
+        await refreshSaved();
+    } catch (error) {
+        showSavedError('Не вдалося видалити рецепт. Спробуйте ще раз.');
+        console.error('Помилка видалення рецепта:', error);
+    }
+}
+
+// Запуск: відкриття бази, міграція і перше читання збережених рецептів
+async function initSavedRecipes() {
+    try {
+        if (USE_INDEXEDDB) {
+            await openDB();
+            await migrateFromLocalStorage();
+        }
+        await refreshSaved();
+        console.log(`Збережені рецепти завантажено (сховище: ${USE_INDEXEDDB ? 'IndexedDB' : 'localStorage'})`);
+    } catch (error) {
+        savedStatus.textContent = '';
+        showSavedError('Збережені рецепти недоступні: браузер не дозволяє використовувати локальну базу даних (наприклад, у режимі приватного перегляду).');
+        console.error('Помилка відкриття IndexedDB:', error);
+    }
+}
+
+initSavedRecipes();
 loadCocktails(lastQuery);

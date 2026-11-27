@@ -117,6 +117,14 @@
                 <!-- Контейнер для карток, отриманих з API -->
                 <div id="api-list" class="recipes-grid"></div>
             </section>
+
+            <section id="saved-recipes" class="section">
+                <h2 class="section_title">Збережені рецепти</h2>
+                <!-- Рецепти, збережені кнопкою «Зберегти рецепт», доступні й без інтернету -->
+                <p id="saved-status" class="recipes-summary">Завантаження збережених рецептів…</p>
+                <p id="saved-error" class="api-error" role="alert" hidden></p>
+                <div id="saved-list" class="recipes-grid"></div>
+            </section>
         </main>
 
         <aside id="recipe-details" class="details-card">
