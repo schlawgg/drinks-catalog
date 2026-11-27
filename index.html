@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Каталог рецептів напоїв</title>
     <link rel="stylesheet" href="css/style.css">
+    <!-- Vue 3 (глобальна збірка з CDN, без npm і збірки) -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js" defer></script>
     <script src="js/script.js" defer></script>
 </head>
 <body>
@@ -21,54 +23,44 @@
 
     <div class="page-layout">
         <main class="main-content">
-            <section id="filter" class="section">
-                <h2 class="section_title">Фільтр</h2>
-                <form action="#" id="filter-form" class="filter-form">
-                    <div class="form-group">
-                        <label for="drink-category" class="form-group_label">Тип напою: </label>
-                        <select id="drink-category" name="category" class="form-group_input">
-                            <option value="all">Усі напої</option>
-                            <option value="hot">Гарячі</option>
-                            <option value="cold">Холодні</option>
-                            <option value="cocktail">Коктейлі</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="search-input" class="form-group_label">Пошук за назвою: </label>
-                        <input type="text" id="search-input" name="search" class="form-group_input">
-                    </div>
-                    <!-- Чекбокс фільтра: обробляється подією change у script.js -->
-                    <div class="form-group form-group--checkbox">
-                        <input type="checkbox" id="only-non-alcoholic" name="onlyNonAlcoholic" class="form-checkbox">
-                        <label for="only-non-alcoholic" class="form-checkbox_label">Лише безалкогольні</label>
-                    </div>
-                    <div class="form-group form-group--button">
-                        <button type="submit" class="btn">Застосувати</button>
-                    </div>
-                </form>
-            </section>
-
-            <section id="recipes" class="section">
-                <h2 class="section_title">Рецепти</h2>
-                <!-- Підсумок: оновлюється з script.js -->
-                <p id="drinks-count" class="recipes-summary">Завантаження рецептів...</p>
-
-                <!-- Контейнер, у який script.js виводить картки рецептів -->
-                <div id="drinks-list" class="recipes-grid">
-                    <!-- Статичний приклад картки з практикуму 2 (орієнтир структури).
-                         Видаляється програмно на початку script.js -->
-                    <article class="recipe-card recipe-card--static">
-                        <img src="assets/img/cappuccino.jpg" alt="Чашка гарячого капучино" class="recipe-card_image">
-                        <div class="recipe-card_content">
-                            <p class="recipe-badge recipe-badge--hot">Гарячий напій</p>
-                            <h3 class="recipe-card_title">Капучино</h3>
-                            <p class="recipe-card_info">⏳ Час: <strong>10 хв</strong></p>
-                            <p class="recipe-card_info">📊 Складність: <span>Середня</span></p>
-                            <p><a href="#recipe-details" class="recipe-card_link">Детальніше</a></p>
+            <!-- Ділянка сторінки, якою керує Vue: фільтр і список рецептів (батьківський компонент) -->
+            <div id="catalog-app" v-cloak>
+                <section id="filter" class="section">
+                    <h2 class="section_title">Фільтр</h2>
+                    <form action="#" id="filter-form" class="filter-form" @submit.prevent>
+                        <div class="form-group">
+                            <label for="drink-category" class="form-group_label">Тип напою: </label>
+                            <select id="drink-category" name="category" class="form-group_input" v-model="category">
+                                <option value="all">Усі напої</option>
+                                <option value="hot">Гарячі</option>
+                                <option value="cold">Холодні</option>
+                                <option value="cocktail">Коктейлі</option>
+                            </select>
                         </div>
-                    </article>
-                </div>
-            </section>
+                        <div class="form-group">
+                            <label for="search-input" class="form-group_label">Пошук за назвою: </label>
+                            <input type="text" id="search-input" name="search" class="form-group_input" v-model="search">
+                        </div>
+                        <!-- Чекбокс варіанта 15: його значення передається в DrinkList через props -->
+                        <div class="form-group form-group--checkbox">
+                            <input type="checkbox" id="only-non-alcoholic" name="onlyNonAlcoholic" class="form-checkbox"
+                                   v-model="onlyNonAlcoholic">
+                            <label for="only-non-alcoholic" class="form-checkbox_label">Лише безалкогольні</label>
+                        </div>
+                    </form>
+                </section>
+
+                <section id="recipes" class="section">
+                    <h2 class="section_title">Рецепти</h2>
+                    <!-- Підсумок: обчислюване значення (computed) у Vue -->
+                    <p id="drinks-count" class="recipes-summary">
+                        Безалкогольних рецептів: {{ nonAlcoholicCount }} з {{ drinks.length }}
+                    </p>
+
+                    <!-- Компонент списку: отримує масив і значення чекбокса через props -->
+                    <drink-list :drinks="filteredDrinks" :only-non-alcoholic="onlyNonAlcoholic"></drink-list>
+                </section>
+            </div>
 
             <section id="add-recipe" class="section">
                 <h2 class="section_title">Додати рецепт</h2>
