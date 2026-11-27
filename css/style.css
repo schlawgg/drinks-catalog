@@ -453,3 +453,96 @@ img {
         grid-column: 1 / -1;
     }
 }
+
+/* ===== Практикум 9: секція з даними з TheCocktailDB ===== */
+
+.btn--secondary {
+    background-color: #ffffff;
+    color: #e65100;
+    border: 2px solid #e65100;
+}
+
+.btn--secondary:hover {
+    background-color: #fff3e0;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.api-search-form .form-group--button {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.api-search-form .form-group--button .btn {
+    flex: 1;
+}
+
+.api-search-form {
+    margin-bottom: 1.5rem;
+}
+
+/* стан завантаження з анімованим індикатором */
+.api-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 1.5rem 0;
+    font-weight: 600;
+    color: #5d4037;
+}
+
+.api-status::before {
+    content: '';
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 3px solid #ffccbc;
+    border-top-color: #e65100;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.api-status[hidden],
+.api-error[hidden] {
+    display: none;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.api-error {
+    margin: 0 0 1.5rem 0;
+    padding: 1rem 1.2rem;
+    border-left: 5px solid #c62828;
+    border-radius: 8px;
+    background-color: #ffebee;
+    color: #b71c1c;
+    font-weight: 600;
+}
+
+/* інструкція з API може бути довгою - показуємо перші 5 рядків */
+.recipe-card_instructions {
+    margin: 0.8rem 0 0 0;
+    font-size: 0.9rem;
+    color: #5d4037;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+@media (min-width: 600px) {
+    .api-search-form .form-group--button {
+        flex: 0 0 auto;
+    }
+
+    .api-search-form .form-group--button .btn {
+        flex: 0 0 auto;
+    }
+}

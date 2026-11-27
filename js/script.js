@@ -1,5 +1,8 @@
 console.log('script.js підключено');
 
+// Адреса пошуку коктейлів у TheCocktailDB (тестовий ключ «1», реєстрація не потрібна)
+const API_URL = 'https://www.thecocktaildb.com/api/json/v1/1/search.php';
+
 // Дані варіанта 15: масив рецептів напоїв (з практикумів 6-7)
 const recipes = [
     {
@@ -62,7 +65,6 @@ const recipes = [
         image: 'assets/img/pina-colada.jpg',
         alt: 'Коктейль піна колада зі шматочком ананаса'
     }
-    
 ];
 
 // Назви типів напоїв для значень select
@@ -91,6 +93,18 @@ const alcoholCheckbox = document.querySelector('#recipe-alcohol');
 const timeError = document.querySelector('#time-error');
 const addMessage = document.querySelector('#add-message');
 
+// Елементи секції з даними із зовнішнього API
+const apiForm = document.querySelector('#api-search-form');
+const apiSearchInput = document.querySelector('#api-search');
+const apiSearchButton = document.querySelector('#api-search-btn');
+const apiReloadButton = document.querySelector('#api-reload-btn');
+const apiLoading = document.querySelector('#api-loading');
+const apiError = document.querySelector('#api-error');
+const apiList = document.querySelector('#api-list');
+
+// Останній пошуковий запит - для кнопки «Оновити»
+let lastQuery = apiSearchInput.value.trim();
+
 // Видалення статичної картки-заглушки з практикуму 2
 const staticCard = document.querySelector('.recipe-card--static');
 if (staticCard !== null) {
@@ -104,7 +118,9 @@ const isQuick = time => time <= 5;
 function createRecipeCard(recipe) {
     const card = document.createElement('article');
     card.classList.add('recipe-card');
-    card.dataset.time = recipe.timeMinutes;   // атрибут data-time
+    if (recipe.timeMinutes) {
+        card.dataset.time = recipe.timeMinutes;   // атрибут data-time
+    }
 
     // Умовний клас: безалкогольні напої
     if (!recipe.alcohol) {
@@ -137,16 +153,20 @@ function createRecipeCard(recipe) {
     title.classList.add('recipe-card_title');
     title.textContent = recipe.name;
 
-    const time = document.createElement('p');
-    time.classList.add('recipe-card_info');
-    const timeValue = document.createElement('strong');
-    timeValue.textContent = `${recipe.timeMinutes} хв`;
-    time.append('⏳ Час: ', timeValue);
-    if (isQuick(recipe.timeMinutes)) {
-        time.append(' (швидко)');
-    }
+    content.append(type, title);
 
-    content.append(type, title, time);
+    // Час показується лише тоді, коли він відомий (в API його немає)
+    if (recipe.timeMinutes) {
+        const time = document.createElement('p');
+        time.classList.add('recipe-card_info');
+        const timeValue = document.createElement('strong');
+        timeValue.textContent = `${recipe.timeMinutes} хв`;
+        time.append('⏳ Час: ', timeValue);
+        if (isQuick(recipe.timeMinutes)) {
+            time.append(' (швидко)');
+        }
+        content.append(time);
+    }
 
     // Складність показується лише тоді, коли вона відома
     if (recipe.difficulty) {
@@ -158,33 +178,45 @@ function createRecipeCard(recipe) {
         content.append(difficulty);
     }
 
-    const linkWrapper = document.createElement('p');
-    const link = document.createElement('a');
-    link.classList.add('recipe-card_link');
-    link.setAttribute('href', '#recipe-details');
-    link.textContent = 'Детальніше';
-    linkWrapper.append(link);
+    // Інструкція приготування (є лише в рецептах з API)
+    if (recipe.instructions) {
+        const instructions = document.createElement('p');
+        instructions.classList.add('recipe-card_instructions');
+        instructions.textContent = recipe.instructions;
+        content.append(instructions);
+    }
 
-    content.append(linkWrapper);
+    // Посилання на деталі - лише для рецептів з власного каталогу
+    if (!recipe.fromApi) {
+        const linkWrapper = document.createElement('p');
+        const link = document.createElement('a');
+        link.classList.add('recipe-card_link');
+        link.setAttribute('href', '#recipe-details');
+        link.textContent = 'Детальніше';
+        linkWrapper.append(link);
+        content.append(linkWrapper);
+    }
+
     card.append(image, content);
     return card;
 }
 
-// Рендер списку: очищає контейнер і додає в нього картку для кожного рецепта
-function renderRecipes(recipesList) {
-    listContainer.innerHTML = '';
+// Рендер списку: очищає контейнер і додає в нього картку для кожного рецепта.
+// container і emptyText дозволяють використати ту саму функцію і для даних з API
+function renderRecipes(recipesList, container = listContainer, emptyText = 'За обраними умовами рецептів не знайдено') {
+    container.innerHTML = '';
 
     if (recipesList.length === 0) {
         const emptyMessage = document.createElement('p');
         emptyMessage.classList.add('recipes-empty');
-        emptyMessage.textContent = 'За обраними умовами рецептів не знайдено';
-        listContainer.append(emptyMessage);
+        emptyMessage.textContent = emptyText;
+        container.append(emptyMessage);
         return;
     }
 
     for (const recipe of recipesList) {
         const card = createRecipeCard(recipe);
-        listContainer.append(card);
+        container.append(card);
     }
 }
 
@@ -301,5 +333,101 @@ addForm.addEventListener('submit', event => {
     timeError.textContent = '';
 });
 
+// ===== Практикум 9: отримання рецептів із зовнішнього API =====
+
+// Перетворює об'єкт коктейлю з TheCocktailDB на об'єкт тієї ж форми, що й у масиві recipes
+function mapApiDrink(drink) {
+    return {
+        name: drink.strDrink,
+        type: 'Коктейль',
+        typeKey: 'cocktail',
+        alcohol: drink.strAlcoholic !== 'Non alcoholic',
+        timeMinutes: null,
+        difficulty: null,
+        image: drink.strDrinkThumb,
+        alt: `Коктейль ${drink.strDrink}`,
+        instructions: drink.strInstructions,
+        fromApi: true
+    };
+}
+
+// Показує або ховає стан завантаження і блокує кнопки на час запиту
+function setApiLoading(isLoading) {
+    apiLoading.hidden = !isLoading;
+    apiSearchButton.disabled = isLoading;
+    apiReloadButton.disabled = isLoading;
+}
+
+// Виводить зрозуміле повідомлення про помилку (або ховає його, якщо текст порожній)
+function showApiError(message) {
+    apiError.textContent = message;
+    apiError.hidden = message === '';
+}
+
+/*
+ * Завантаження коктейлів за назвою з TheCocktailDB:
+ * https://www.thecocktaildb.com/api.php
+ * Ендпоінт: https://www.thecocktaildb.com/api/json/v1/1/search.php?s=<назва>
+ */
+async function loadCocktails(query) {
+    lastQuery = query;
+    showApiError('');
+    setApiLoading(true);
+
+    try {
+        const response = await fetch(`${API_URL}?s=${encodeURIComponent(query)}`);
+
+        // fetch не вважає 404/500 помилкою, тому статус перевіряємо вручну
+        if (!response.ok) {
+            throw new Error(`Сервер TheCocktailDB відповів кодом ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Відповідь TheCocktailDB:', data);
+
+        // Якщо нічого не знайдено, API повертає { drinks: null }
+        if (data.drinks === null || !Array.isArray(data.drinks)) {
+            renderRecipes([], apiList, 'Рецептів за такою назвою не знайдено');
+            return;
+        }
+
+        const cocktails = [];
+        for (const drink of data.drinks) {
+            cocktails.push(mapApiDrink(drink));
+        }
+        renderRecipes(cocktails, apiList);   // та сама функція рендеру з практикуму 7
+    } catch (error) {
+        apiList.innerHTML = '';
+        if (error instanceof TypeError) {
+            // fetch відхиляє Promise, коли запит не дійшов до сервера (немає з'єднання)
+            showApiError('Не вдалося завантажити рецепти. Перевірте з\'єднання з інтернетом і натисніть «Оновити».');
+        } else {
+            showApiError('Сервіс рецептів тимчасово недоступний. Спробуйте пізніше.');
+        }
+        console.error('Помилка запиту до TheCocktailDB:', error);
+    } finally {
+        setApiLoading(false);   // ховаємо завантаження і за успіху, і за помилки
+    }
+}
+
+// Подія submit форми пошуку: новий запит до API без перезавантаження сторінки
+apiForm.addEventListener('submit', event => {
+    event.preventDefault();
+
+    const query = apiSearchInput.value.trim();
+    if (query === '') {
+        showApiError('Введіть назву коктейлю для пошуку.');
+        return;
+    }
+
+    loadCocktails(query);
+});
+
+// Кнопка «Оновити»: повторює останній запит, наприклад після збою мережі
+apiReloadButton.addEventListener('click', () => {
+    loadCocktails(lastQuery);
+});
+
 renderRecipes(recipes);
 updateDrinksCount(recipes);
+loadCocktails(lastQuery);
