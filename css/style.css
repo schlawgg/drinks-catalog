@@ -594,3 +594,98 @@ img {
 .saved-ingredients li {
     margin-bottom: 0.2rem;
 }
+
+/* ===== Практикум 12: анімація «наливання» напою (CSS transition) ===== */
+
+.details-card_hint {
+    text-align: center;
+    font-style: italic;
+}
+
+/* обгортка з місцем над келихом для струменя */
+.glass-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 0 0 1.5rem 0;
+}
+
+.glass {
+    --drink-color: #ffb74d;      /* колір напою - задається з script.js */
+    --pour-duration: 1.8s;       /* тривалість наливання - задається з script.js */
+    position: relative;
+    width: 110px;
+    padding-top: 40px;           /* висота, з якої «ллється» струмінь */
+}
+
+/* струмінь: тонка смужка кольору напою, що витягується згори вниз */
+.glass_stream {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 6px;
+    height: calc(100% - 10px);
+    margin-left: -3px;
+    border-radius: 3px;
+    background-color: var(--drink-color);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.3s ease;
+    z-index: 1;
+}
+
+.glass--pouring .glass_stream {
+    transform: scaleY(1);
+}
+
+/* сам келих */
+.glass_body {
+    position: relative;
+    height: 140px;
+    overflow: hidden;
+    border: 4px solid #d7ccc8;
+    border-top: none;
+    border-radius: 0 0 28px 28px;
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+/* рідина: заповнюється знизу вгору через transform: scaleY (без перерахунку розмітки) */
+.glass_liquid {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 85%;
+    background-color: var(--drink-color);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform var(--pour-duration) cubic-bezier(0.45, 0.05, 0.55, 0.95);
+}
+
+/* світлий відблиск на поверхні напою */
+.glass_liquid::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.35);
+}
+
+.glass--filled .glass_liquid {
+    transform: scaleY(1);
+}
+
+/* тимчасовий клас для миттєвого скидання анімації перед новим наливанням */
+.glass--reset .glass_stream,
+.glass--reset .glass_liquid {
+    transition: none;
+}
+
+/* користувачам, які вимкнули анімації в системі, показуємо одразу наповнений келих */
+@media (prefers-reduced-motion: reduce) {
+    .glass_stream,
+    .glass_liquid {
+        transition: none;
+    }
+}

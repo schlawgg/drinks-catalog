@@ -57,8 +57,10 @@
                         Безалкогольних рецептів: {{ nonAlcoholicCount }} з {{ drinks.length }}
                     </p>
 
-                    <!-- Компонент списку: отримує масив і значення чекбокса через props -->
-                    <drink-list :drinks="filteredDrinks" :only-non-alcoholic="onlyNonAlcoholic"></drink-list>
+                    <!-- Компонент списку: отримує масив і значення чекбокса через props,
+                         а подією select повідомляє, яку картку відкрили -->
+                    <drink-list :drinks="filteredDrinks" :only-non-alcoholic="onlyNonAlcoholic"
+                                @select="openDetails"></drink-list>
                 </section>
             </div>
 
@@ -127,24 +129,25 @@
             </section>
         </main>
 
+        <!-- Деталі рецепта: заповнюються з script.js при відкритті картки (практикум 12) -->
         <aside id="recipe-details" class="details-card">
             <h2 class="details-card_title">Деталі обраного рецепта</h2>
-            <h3 class="details-card_subtitle">Мохіто безалкогольний</h3>
-            <p class="details-card_text"><strong>Інгредієнти:</strong></p>
-            <ul class="details-card_list">
-                <li>М'ята - 10 листочків</li>
-                <li>Лайм - 1/2 шт.</li>
-                <li>Газована вода - 150 мл</li>
-                <li>Лід - за смаком</li>
-                <li>Цукор - 1 ч.л.</li>
-            </ul>
-            <p class="details-card_text"><strong>Кроки приготування:</strong></p>
-            <ol class="details-card_steps">
-                <li>Нарізати лайм часточками.</li>
-                <li>Розім'яти лайм з м'ятою та цукром на дні.</li>
-                <li>Додати лід.</li>
-                <li>Залити водою та перемішати.</li>
-            </ol>
+
+            <!-- Келих з анімацією «наливання»: колір і тривалість задаються з даних рецепта -->
+            <div class="glass-wrap" aria-hidden="true">
+                <div id="details-glass" class="glass">
+                    <div class="glass_stream"></div>
+                    <div class="glass_body">
+                        <div class="glass_liquid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <p id="details-hint" class="details-card_text details-card_hint">
+                Натисніть «Детальніше» на картці рецепта, щоб «налити» напій.
+            </p>
+            <h3 id="details-name" class="details-card_subtitle" hidden></h3>
+            <div id="details-body"></div>
         </aside>
     </div>
 

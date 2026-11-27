@@ -31,6 +31,13 @@ const typeLabels = {
     cocktail: 'Коктейль'
 };
 
+// Кольори напою за типом - для рецептів, доданих через форму, і рецептів з API (практикум 12)
+const typeColors = {
+    hot: '#8d5a3b',
+    cold: '#81d4fa',
+    cocktail: '#ffb74d'
+};
+
 // Стрілкова функція з практикуму 6: чи готується напій швидко (до 5 хв)
 const isQuick = time => time <= 5;
 
@@ -56,6 +63,8 @@ const DrinkCard = {
         image: { type: String, default: null },
         alt: { type: String, default: '' }
     },
+    // Подія select: користувач відкрив картку (практикум 12)
+    emits: ['select'],
     computed: {
         // Похідне значення: «швидкий» напій обчислюється з props timeMinutes
         quick() {
@@ -72,7 +81,7 @@ const DrinkCard = {
                 <h3 class="recipe-card_title">{{ name }}</h3>
                 <p class="recipe-card_info">⏳ Час: <strong>{{ timeMinutes }} хв</strong><span v-if="quick">(швидко)</span></p>
                 <p v-if="difficulty" class="recipe-card_info">📊 Складність: <span>{{ difficulty }}</span></p>
-                <p><a href="#recipe-details" class="recipe-card_link">Детальніше</a></p>
+                <p><a href="#recipe-details" class="recipe-card_link" @click="$emit('select')">Детальніше</a></p>
             </div>
         </article>
     `
@@ -85,6 +94,8 @@ const DrinkList = {
         drinks: { type: Array, required: true },
         onlyNonAlcoholic: { type: Boolean, default: false }
     },
+    // Передає подію відкриття картки батьківському компоненту разом із напоєм
+    emits: ['select'],
     computed: {
         // Фільтрація за значенням чекбокса, переданим з батьківського компонента
         visibleDrinks() {
@@ -107,6 +118,7 @@ const DrinkList = {
                 :difficulty="drink.difficulty"
                 :image="drink.image"
                 :alt="drink.alt"
+                @select="$emit('select', drink)"
             ></drink-card>
             <p v-if="visibleDrinks.length === 0" class="recipes-empty">
                 За обраними умовами рецептів не знайдено
@@ -131,7 +143,18 @@ const catalogApp = Vue.createApp({
                     timeMinutes: 10,
                     difficulty: 'Середня',
                     image: 'assets/img/cappuccino.jpg',
-                    alt: 'Чашка гарячого капучино'
+                    alt: 'Чашка гарячого капучино',
+                    color: '#a1673f',
+                    ingredients: [
+                        'Еспресо - 30 мл',
+                        'Молоко - 120 мл',
+                        'Цукор - за смаком'
+                    ],
+                    steps: [
+                        'Приготувати еспресо.',
+                        'Збити молоко до густої піни.',
+                        'Влити молоко з піною в еспресо.'
+                    ]
                 },
                 {
                     id: 2,
@@ -142,7 +165,21 @@ const catalogApp = Vue.createApp({
                     timeMinutes: 5,
                     difficulty: 'Легка',
                     image: 'assets/img/mojito.jpg',
-                    alt: 'Склянка холодного мохіто'
+                    alt: 'Склянка холодного мохіто',
+                    color: '#a5d6a7',
+                    ingredients: [
+                        'М\'ята - 10 листочків',
+                        'Лайм - 1/2 шт.',
+                        'Газована вода - 150 мл',
+                        'Лід - за смаком',
+                        'Цукор - 1 ч.л.'
+                    ],
+                    steps: [
+                        'Нарізати лайм часточками.',
+                        'Розім\'яти лайм з м\'ятою та цукром на дні.',
+                        'Додати лід.',
+                        'Залити водою та перемішати.'
+                    ]
                 },
                 {
                     id: 3,
@@ -153,7 +190,19 @@ const catalogApp = Vue.createApp({
                     timeMinutes: 7,
                     difficulty: 'Середня',
                     image: 'assets/img/matcha.jpg',
-                    alt: 'Зелений чай матча'
+                    alt: 'Зелений чай матча',
+                    color: '#9ccc65',
+                    ingredients: [
+                        'Порошок матча - 1 ч.л.',
+                        'Гаряча вода - 50 мл',
+                        'Молоко - 150 мл',
+                        'Мед - за смаком'
+                    ],
+                    steps: [
+                        'Збити матчу з водою до однорідності.',
+                        'Підігріти та спінити молоко.',
+                        'Влити молоко в матчу, додати мед.'
+                    ]
                 },
                 {
                     id: 4,
@@ -164,7 +213,20 @@ const catalogApp = Vue.createApp({
                     timeMinutes: 15,
                     difficulty: 'Середня',
                     image: 'assets/img/mulled-wine.jpg',
-                    alt: 'Келих гарячого глінтвейну з апельсином і корицею'
+                    alt: 'Келих гарячого глінтвейну з апельсином і корицею',
+                    color: '#8e1b2b',
+                    ingredients: [
+                        'Червоне вино - 750 мл',
+                        'Апельсин - 1 шт.',
+                        'Кориця - 2 палички',
+                        'Гвоздика - 5 шт.',
+                        'Мед - 2 ст.л.'
+                    ],
+                    steps: [
+                        'Нагріти вино, не доводячи до кипіння.',
+                        'Додати спеції та нарізаний апельсин.',
+                        'Настояти 10 хвилин і додати мед.'
+                    ]
                 },
                 {
                     id: 5,
@@ -175,7 +237,20 @@ const catalogApp = Vue.createApp({
                     timeMinutes: 5,
                     difficulty: 'Легка',
                     image: 'assets/img/lemonade.jpg',
-                    alt: 'Глечик лимонаду з імбиром і скибочками лимона'
+                    alt: 'Глечик лимонаду з імбиром і скибочками лимона',
+                    color: '#f9d55b',
+                    ingredients: [
+                        'Імбир - 30 г',
+                        'Лимон - 1 шт.',
+                        'Газована вода - 500 мл',
+                        'Цукровий сироп - 50 мл',
+                        'Лід - за смаком'
+                    ],
+                    steps: [
+                        'Натерти імбир і вичавити сік лимона.',
+                        'Змішати з цукровим сиропом.',
+                        'Додати лід і залити газованою водою.'
+                    ]
                 },
                 {
                     id: 6,
@@ -186,7 +261,19 @@ const catalogApp = Vue.createApp({
                     timeMinutes: 8,
                     difficulty: 'Середня',
                     image: 'assets/img/pina-colada.jpg',
-                    alt: 'Коктейль піна колада зі шматочком ананаса'
+                    alt: 'Коктейль піна колада зі шматочком ананаса',
+                    color: '#efe3c2',
+                    ingredients: [
+                        'Білий ром - 50 мл',
+                        'Кокосові вершки - 50 мл',
+                        'Ананасовий сік - 100 мл',
+                        'Лід - за смаком'
+                    ],
+                    steps: [
+                        'Змішати всі інгредієнти в блендері з льодом.',
+                        'Перелити в келих.',
+                        'Прикрасити шматочком ананаса.'
+                    ]
                 }
             ],
             category: 'all',
@@ -217,6 +304,10 @@ const catalogApp = Vue.createApp({
         // Додає новий рецепт у реактивний масив - Vue сам перемальовує список
         addRecipe(recipe) {
             this.drinks.push(recipe);
+        },
+        // Відкриття картки: показує деталі з анімацією «наливання» (практикум 12)
+        openDetails(drink) {
+            openRecipeDetails(drink);
         },
         // Чи буде рецепт видно з поточними фільтрами
         isVisible(recipe) {
@@ -282,7 +373,10 @@ addForm.addEventListener('submit', event => {
         timeMinutes: Number(timeInput.value),
         difficulty: null,
         image: null,
-        alt: ''
+        alt: '',
+        color: typeColors[typeKey],   // колір напою для анімації «наливання»
+        ingredients: [],
+        steps: []
     };
 
     catalogApp.addRecipe(newRecipe);
@@ -694,7 +788,20 @@ function createSavedCard(recipe) {
     deleteButton.classList.add('btn', 'btn--small', 'btn--danger');
     deleteButton.textContent = '🗑 Видалити';
     deleteButton.addEventListener('click', () => deleteCocktail(recipe));
-    actions.append(deleteButton);
+
+    // Відкриття збереженого рецепта в панелі деталей з анімацією «наливання» (практикум 12)
+    const openButton = document.createElement('button');
+    openButton.type = 'button';
+    openButton.classList.add('btn', 'btn--small', 'btn--secondary');
+    openButton.textContent = '📖 Відкрити';
+    openButton.addEventListener('click', () => {
+        openRecipeDetails({ ...recipe, color: typeColors.cocktail });
+        if (window.innerWidth < 1024) {
+            detailsCard.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+
+    actions.append(openButton, deleteButton);
 
     content.append(badge, title, ingredientsTitle, ingredientsList, instructions, actions);
     card.append(image, content);
@@ -770,6 +877,107 @@ async function initSavedRecipes() {
         showSavedError('Збережені рецепти недоступні: браузер не дозволяє використовувати локальну базу даних (наприклад, у режимі приватного перегляду).');
         console.error('Помилка відкриття IndexedDB:', error);
     }
+}
+
+// ===== Практикум 12: анімація «наливання» напою при відкритті картки рецепта =====
+
+const detailsCard = document.querySelector('#recipe-details');
+const detailsGlass = document.querySelector('#details-glass');
+const detailsLiquid = detailsGlass.querySelector('.glass_liquid');
+const detailsHint = document.querySelector('#details-hint');
+const detailsName = document.querySelector('#details-name');
+const detailsBody = document.querySelector('#details-body');
+
+// Тривалість наливання залежить від часу приготування напою: від 1 до 2.5 секунди
+function getPourDuration(recipe) {
+    if (!recipe.timeMinutes) {
+        return 1.8;
+    }
+    return Math.min(2.5, Math.max(1, recipe.timeMinutes / 6));
+}
+
+// Створює заголовок і список (ul чи ol) для панелі деталей
+function createDetailsList(titleText, items, listTag) {
+    const fragment = document.createDocumentFragment();
+
+    const title = document.createElement('p');
+    title.classList.add('details-card_text');
+    const strong = document.createElement('strong');
+    strong.textContent = titleText;
+    title.append(strong);
+
+    const list = document.createElement(listTag);
+    list.classList.add(listTag === 'ul' ? 'details-card_list' : 'details-card_steps');
+    for (const item of items) {
+        const li = document.createElement('li');
+        li.textContent = item;
+        list.append(li);
+    }
+
+    fragment.append(title, list);
+    return fragment;
+}
+
+// Заповнює панель даними рецепта (назва, інгредієнти, кроки чи інструкція)
+function renderRecipeDetails(recipe) {
+    detailsHint.hidden = true;
+    detailsName.hidden = false;
+    detailsName.textContent = recipe.name;
+    detailsBody.innerHTML = '';
+
+    if (recipe.ingredients && recipe.ingredients.length > 0) {
+        detailsBody.append(createDetailsList('Інгредієнти:', recipe.ingredients, 'ul'));
+    } else {
+        const noIngredients = document.createElement('p');
+        noIngredients.classList.add('details-card_text');
+        noIngredients.textContent = 'Інгредієнти для цього рецепта ще не вказано.';
+        detailsBody.append(noIngredients);
+    }
+
+    if (recipe.steps && recipe.steps.length > 0) {
+        detailsBody.append(createDetailsList('Кроки приготування:', recipe.steps, 'ol'));
+    } else if (recipe.instructions) {
+        const title = document.createElement('p');
+        title.classList.add('details-card_text');
+        const strong = document.createElement('strong');
+        strong.textContent = 'Приготування:';
+        title.append(strong);
+
+        const text = document.createElement('p');
+        text.classList.add('details-card_text');
+        text.textContent = recipe.instructions;
+        detailsBody.append(title, text);
+    }
+}
+
+// Запускає анімацію «наливання» з нуля: колір і тривалість беруться з даних рецепта
+function pourDrink(recipe) {
+    detailsGlass.style.setProperty('--drink-color', recipe.color || typeColors.cocktail);
+    detailsGlass.style.setProperty('--pour-duration', `${getPourDuration(recipe)}s`);
+
+    // миттєво (без transition) спорожнюємо келих і змушуємо браузер застосувати
+    // цей стан (reflow), інакше наливання не почнеться заново для того самого елемента
+    detailsGlass.classList.add('glass--reset');
+    detailsGlass.classList.remove('glass--filled', 'glass--pouring');
+    void detailsGlass.offsetWidth;
+    detailsGlass.classList.remove('glass--reset');
+
+    detailsGlass.classList.add('glass--pouring', 'glass--filled');
+    console.log(`Наливаємо «${recipe.name}» (${getPourDuration(recipe)} с)`);
+}
+
+// Коли рідина «налилася», струмінь зникає - анімація завершується
+detailsLiquid.addEventListener('transitionend', event => {
+    if (event.propertyName === 'transform' && detailsGlass.classList.contains('glass--filled')) {
+        detailsGlass.classList.remove('glass--pouring');
+        console.log('Напій налито');
+    }
+});
+
+// Відкриття картки рецепта: дані + анімація
+function openRecipeDetails(recipe) {
+    renderRecipeDetails(recipe);
+    pourDrink(recipe);
 }
 
 initSavedRecipes();
